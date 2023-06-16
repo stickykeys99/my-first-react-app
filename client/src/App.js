@@ -1,50 +1,40 @@
 import {useEffect, useState} from 'react'
+import {Route, Routes} from 'react-router-dom'
+import {Link, useMatch, useResolvedPath} from 'react-router-dom'
+import Home from './pages/Home'
+import AddMovie from './pages/AddMovie'
+import ViewMovie from './pages/ViewMovie'
+import EditMovie from './pages/EditMovie'
 
-import MovieCard from './MovieCard'
+function App() {
+    const [searchTerm, setSearchTerm] = useState('')
 
-import './App.css'
-import SearchIcon from './search.svg'
+    return (<>
+        {/*Static*/}
 
-// d48bbe47
+        <Link to="/"><h1>MovieLand</h1></Link>
 
-const API_URL = 'http://www.omdbapi.com?apikey=d48bbe47'
+        <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        {/*Missing Search Button*/}
 
-const App = () => {
-    const [movies, setMovies] = useState([])
-    const [searchTerm, setSearchTerm] = useState('12 Angry Men')
+        {/*Temporary stuff below*/}
 
-    const searchMovies = async (title) => {
-        const response = await fetch(`${API_URL}&s=${title}`)
-        const data = await response.json()
+        <Link to="/new">New Movie</Link>
+        <Link to="/5">Movie 5</Link>
+        <Link to="/5/edit">Edit Movie 5</Link>
 
-        setMovies(data.Search)
-    }
+        {/*end of static*/}
 
-    useEffect(() => {
-        searchMovies('12 Angry Men')
-    }, [])
-
-    return (
-        <div className='app'>
-            <h1>MovieLand</h1>
-            <div className='search'>
-                <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                <img src={SearchIcon} alt="search" onClick={() => searchMovies(searchTerm)}/>
-            </div>
-
-            {
-                movies?.length > 0 ? (<div className="container">
-                    {movies.map((movie) => (
-                        <MovieCard movie={movie} />
-                    ))}
-                </div>) : (
-                    <div className="empty">
-                        <h2>No movies found</h2>
-                    </div>
-                )
-            }
+        {/*Dynamic via routes*/}
+        <div className="container">
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/new" element={<AddMovie />} />
+                <Route path="/:id" element={<ViewMovie />} />
+                <Route path="/:id/edit" element={<EditMovie />} />
+            </Routes>
         </div>
-    )
+    </>)
 }
 
 export default App
