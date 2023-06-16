@@ -1,0 +1,6 @@
+Current limitations:
+
+A movie only has one genre.
+A movie does not have tags. It is only searchable through the title.
+The search function is a naive linear search. 
+Image is not saved in the database but through some kind of link.

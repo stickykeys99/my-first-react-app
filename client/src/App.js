@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react'
 import {Route, Routes} from 'react-router-dom'
 import {Link, useMatch, useResolvedPath} from 'react-router-dom'
-import Home from './pages/Home'
-import AddMovie from './pages/AddMovie'
-import ViewMovie from './pages/ViewMovie'
-import EditMovie from './pages/EditMovie'
+import MovieIndex from './pages/MovieIndex'
+import MovieNew from './pages/MovieNew'
+import MovieView from './pages/MovieView'
+import MovieUpdate from './pages/MovieUpdate'
 
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -28,10 +28,10 @@ function App() {
         {/*Dynamic via routes*/}
         <div className="container">
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/new" element={<AddMovie />} />
-                <Route path="/:id" element={<ViewMovie />} />
-                <Route path="/:id/edit" element={<EditMovie />} />
+                <Route path="/" element={<MovieIndex />} />
+                <Route path="/new" element={<MovieNew />} />
+                <Route path="/:id" element={<MovieView />} />
+                <Route path="/:id/edit" element={<MovieUpdate />} />
             </Routes>
         </div>
     </>)
