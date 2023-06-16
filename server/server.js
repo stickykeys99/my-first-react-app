@@ -34,7 +34,8 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        res.send(movies)
+        // res.send(movies)
+        res.send({data: movies.map((val,ind)=>({id:ind,...val,genre:getGenre(val.genreId)}))})
         // TODO: filtering via term and genreId
     })
     .post((req,res)=>{
@@ -56,7 +57,6 @@ mvsRtr.route('/')
 mvsRtr.route('/:id')
     .get((req,res)=>{
         res.json(req.movie)
-        return genres[req.movie.genreId]
     })
     .put((req,res)=>{
         let movie = {title: req.body.title,
@@ -76,3 +76,8 @@ mvsRtr.route('/:id')
 
 // create the same endpoint for /genres
 // movie endpoints must return genre
+
+function getGenre(id) {
+    if (id >= genres.length) return "Unknown"
+    return genres[id]
+}
