@@ -11,16 +11,6 @@ function dbrun() {
     db.run(sql,(err)=>logError(err))
 }
 
-function getGenreRow(res,name) {
-    sql = `SELECT * FROM genres WHERE name='${name}' LIMIT 1`
-    db.all(sql, (err,genres)=>{
-        logError(err)
-        if (genres.length === 0) returnVal = {id:null, name: "Unknown"}
-        else returnVal = genres[0]
-    })
-    return returnVal
-}
-
 const PORT_NO = 8080
 
 app.listen(PORT_NO, ()=>console.log(`Server opened at port ${PORT_NO}`))
@@ -29,14 +19,11 @@ app.use(express.json())
 
 // movie has year, poster (image link), title, then genre
 
-// TODO: put these all in a sqlite database
-
-// these are currently unpersistent, revokes all changes via requests upon reload of the code
-const genres = ["Action", "Fantasy"]
-
-let movies = [{title: 'The Dark Knight Rises', year: 2012, genreId: 0, poster: 'https://upload.wikimedia.org/wikipedia/en/8/83/Dark_knight_rises_poster.jpg'}, {title: 'Avatar: The Way of Water', year: 2022, genreId: 1, poster: 'https://i.ebayimg.com/images/g/NLMAAOSw~NZjm0Eh/s-l400.jpg'}]
-
 const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
+
+//
+// TODO: have the foreign key the genre "id" not the name. will need to rebuild the table, and modify the endpoints
+//
 
 // movies endpoints
 
@@ -53,10 +40,8 @@ mvsRtr.param('id',(req,res,next,id)=>{
         logError(err)
         if (movies.length === 0) res.status(404).end("No such movie in database")
         req.movie = movies[0]
-        // is it allowed to have next here?
         next()
     })
-    // if next is here after as usual 
 })
 
 // GET /movies - get all movies, filterable by term and genreId
@@ -64,57 +49,34 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        data = []
         sql = `SELECT * FROM movies`
-        // db.all(sql,(err,movies)=>{
-        //     logError(err)
-        //     if (movies.length === 0) res.status(404).end("No movies found in database")
 
-        //     myData = movies.map((val)=>({
-        //         ...val,
-        //         genre: getGenreRow(res,val.genre)
-        //     }))
-
-        //     // myData = movies.map((val)=>{
-        //     //     db.all(`SELECT * FROM genres WHERE name='${val.genre}' LIMIT 1`, (err,genres)=>{
-        //     //         l
-        //     //         logError(err)
-        //     //         if (genres.length === 0) 
-        //     //     })
-        //     // })
-
-        //     res.send({
-        //         data: myData
-        //     })
-
-        // })
-
-        db.each(sql,(err,movie)=>{
+        db.all(sql,(err,movies)=>{
             logError(err)
-            db.all(`SELECT * from genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
-                logError(err)
-                let genreObj;
-                if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
-                else genreObj = genres[0]
-                data.push({...movie, genre: genreObj})
+            if (movies.length === 0) res.end("No movies found in database")
+
+            data = []
+
+            movies.forEach((movie,ind)=>{
+                db.all(`SELECT * FROM genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
+                    let genreObj
+                    if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
+                    else genreObj = genres[0]
+                    data.push({...movie,genre:genreObj})
+                    if (ind===movies.length-1) {
+                        res.send({data: data})
+                    }
+                })
             })
-        })
-
-        if (data.length === 0) res.send("No movies found in database")
-
-        res.send({
-            data: data
         })
 
         // TODO: filtering via term and genreId
     })
     .post((req,res)=>{
-        let movie = {title: req.body.title,
-            year: req.body.year,
-            genreId: req.body.genreId,
-            poster: req.body.poster
-        }
-        movies.push(movie)
+        sql = `INSERT INTO movies(title, year, genre, poster) VALUES (?,?,?,?)`
+
+        db.run(sql,[req.body.title,req.body.year,req.body.genre,req.body.poster],(err)=>logError(err))
+
         res.end()
 
         // TODO: validation
@@ -126,28 +88,25 @@ mvsRtr.route('/')
 
 mvsRtr.route('/:id')
     .get((req,res)=>{
-        res.json(req.movie)
+        const movie = req.movie
+        db.all(`SELECT * FROM genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
+            let genreObj
+            if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
+            else genreObj = genres[0]
+            res.json({...movie,genre:genreObj})
+        })
     })
     .put((req,res)=>{
-        let movie = {title: req.body.title,
-            year: req.body.year,
-            genreId: req.body.genreId,
-            poster: req.body.poster
-        }
-        movies.splice(req.params.id,1,movie)
+        sql = `UPDATE movies SET title = ?, year = ?, genre = ?, poster = ? WHERE id = ?`
+        db.run(sql,[req.body.title,req.body.year,req.body.genre,req.body.poster,req.params.id],(err)=>logError(err))
         res.end()
+
         // TODO: validation
     })
     .delete((req,res)=>{
-        let id = req.params.id
-        movies.splice(id,1)
+        sql = `DELETE FROM movies WHERE id = ${req.params.id}`
+        dbrun()
         res.end()
     })
 
 // create the same endpoint for /genres
-// movie endpoints must return genre
-
-function getGenre(id) {
-    if (id >= genres.length) return "Unknown"
-    return genres[id]
-}
