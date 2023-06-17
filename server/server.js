@@ -1,5 +1,25 @@
 const express = require('express')
+const sqlite3 = require('sqlite3')
 const app = express()
+let sql
+
+function logError(err) {
+    if(err) return console.error(err.message)
+}
+
+function dbrun() {
+    db.run(sql,(err)=>logError(err))
+}
+
+function getGenreRow(res,name) {
+    sql = `SELECT * FROM genres WHERE name='${name}' LIMIT 1`
+    db.all(sql, (err,genres)=>{
+        logError(err)
+        if (genres.length === 0) returnVal = {id:null, name: "Unknown"}
+        else returnVal = genres[0]
+    })
+    return returnVal
+}
 
 const PORT_NO = 8080
 
@@ -16,17 +36,27 @@ const genres = ["Action", "Fantasy"]
 
 let movies = [{title: 'The Dark Knight Rises', year: 2012, genreId: 0, poster: 'https://upload.wikimedia.org/wikipedia/en/8/83/Dark_knight_rises_poster.jpg'}, {title: 'Avatar: The Way of Water', year: 2022, genreId: 1, poster: 'https://i.ebayimg.com/images/g/NLMAAOSw~NZjm0Eh/s-l400.jpg'}]
 
+const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
+
 // movies endpoints
 
 const mvsRtr = express.Router()
 app.use('/movies',mvsRtr)
 
 mvsRtr.param('id',(req,res,next,id)=>{
-    if (id >= movies.length) {
-        res.status(404).end("No such movie in database")
-    }
-    req.movie = movies[id]
-    next()
+    // if (id >= movies.length) {
+    //     res.status(404).end("No such movie in database")
+    // }
+    // req.movie = movies[id]
+    sql = `SELECT * FROM movies WHERE id=${id} LIMIT 1`
+    db.all(sql,(err,movies)=>{
+        logError(err)
+        if (movies.length === 0) res.status(404).end("No such movie in database")
+        req.movie = movies[0]
+        // is it allowed to have next here?
+        next()
+    })
+    // if next is here after as usual 
 })
 
 // GET /movies - get all movies, filterable by term and genreId
@@ -34,8 +64,48 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        // res.send(movies)
-        res.send({data: movies.map((val,ind)=>({id:ind,...val,genre:getGenre(val.genreId)}))})
+        data = []
+        sql = `SELECT * FROM movies`
+        // db.all(sql,(err,movies)=>{
+        //     logError(err)
+        //     if (movies.length === 0) res.status(404).end("No movies found in database")
+
+        //     myData = movies.map((val)=>({
+        //         ...val,
+        //         genre: getGenreRow(res,val.genre)
+        //     }))
+
+        //     // myData = movies.map((val)=>{
+        //     //     db.all(`SELECT * FROM genres WHERE name='${val.genre}' LIMIT 1`, (err,genres)=>{
+        //     //         l
+        //     //         logError(err)
+        //     //         if (genres.length === 0) 
+        //     //     })
+        //     // })
+
+        //     res.send({
+        //         data: myData
+        //     })
+
+        // })
+
+        db.each(sql,(err,movie)=>{
+            logError(err)
+            db.all(`SELECT * from genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
+                logError(err)
+                let genreObj;
+                if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
+                else genreObj = genres[0]
+                data.push({...movie, genre: genreObj})
+            })
+        })
+
+        if (data.length === 0) res.send("No movies found in database")
+
+        res.send({
+            data: data
+        })
+
         // TODO: filtering via term and genreId
     })
     .post((req,res)=>{
