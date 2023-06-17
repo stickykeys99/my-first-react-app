@@ -3,6 +3,8 @@ const sqlite3 = require('sqlite3')
 const app = express()
 let sql
 
+// TODO: yup
+
 function logError(err) {
     if(err) return console.error(err.message)
 }
@@ -21,20 +23,12 @@ app.use(express.json())
 
 const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
 
-//
-// TODO: have the foreign key the genre "id" not the name. will need to rebuild the table, and modify the endpoints
-//
-
 // movies endpoints
 
 const mvsRtr = express.Router()
 app.use('/movies',mvsRtr)
 
 mvsRtr.param('id',(req,res,next,id)=>{
-    // if (id >= movies.length) {
-    //     res.status(404).end("No such movie in database")
-    // }
-    // req.movie = movies[id]
     sql = `SELECT * FROM movies WHERE id=${id} LIMIT 1`
     db.all(sql,(err,movies)=>{
         logError(err)
@@ -49,7 +43,8 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        sql = `SELECT * FROM movies`
+        sql = `SELECT * FROM movies WHERE title LIKE '%${req.query.term}%'`
+        if (req.query.genre !== undefined) sql += ` AND genre = ${req.query.genre}`
 
         db.all(sql,(err,movies)=>{
             logError(err)
@@ -58,9 +53,9 @@ mvsRtr.route('/')
             data = []
 
             movies.forEach((movie,ind)=>{
-                db.all(`SELECT * FROM genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
+                db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
                     let genreObj
-                    if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
+                    if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
                     else genreObj = genres[0]
                     data.push({...movie,genre:genreObj})
                     if (ind===movies.length-1) {
@@ -69,8 +64,6 @@ mvsRtr.route('/')
                 })
             })
         })
-
-        // TODO: filtering via term and genreId
     })
     .post((req,res)=>{
         sql = `INSERT INTO movies(title, year, genre, poster) VALUES (?,?,?,?)`
@@ -89,11 +82,11 @@ mvsRtr.route('/')
 mvsRtr.route('/:id')
     .get((req,res)=>{
         const movie = req.movie
-        db.all(`SELECT * FROM genres WHERE name='${movie.genre}' LIMIT 1`, (err,genres)=>{
+        db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
             let genreObj
-            if (genres.length === 0) genreObj = {id: null, name: 'Unknown'}
+            if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
             else genreObj = genres[0]
-            res.json({...movie,genre:genreObj})
+            res.json({data: {...movie,genre:genreObj}})
         })
     })
     .put((req,res)=>{
@@ -110,3 +103,46 @@ mvsRtr.route('/:id')
     })
 
 // create the same endpoint for /genres
+
+const gnrsRtr = express.Router()
+app.use('/genres',gnrsRtr)
+
+gnrsRtr.param('id',(req,res,next,id)=>{
+    sql = `SELECT * FROM genres WHERE id=${id} LIMIT 1`
+    db.all(sql,(err,genres)=>{
+        logError(err)
+        if (genres.length === 0) res.status(404).end("No such genre")
+        req.genre = genres[0]
+        next()
+    })
+})
+
+gnrsRtr.route('/')
+    .get((req,res)=>{
+        sql = `SELECT * FROM genres`
+        db.all(sql,(err,genres)=>{
+            logError(err)
+            if (genres.length === 0) res.end("No genres found")
+            res.send({data: genres})
+        })
+    })
+    .post((req,res)=>{
+        sql = `INSERT INTO genres(name) VALUES ('${req.body.name}')`
+        dbrun()
+        res.end()
+    })
+
+gnrsRtr.route('/:id')
+    .get((req,res)=>{
+        res.send({data: req.genre})
+    })
+    .put((req,res)=>{
+        sql = `UPDATE genres SET name = '${req.body.name}' WHERE id = ${req.params.id}`
+        dbrun()
+        res.end()
+    })
+    .delete((req,res)=>{
+        sql = `DELETE FROM genres WHERE id = ${req.params.id}`
+        dbrun()
+        res.end()
+    })
