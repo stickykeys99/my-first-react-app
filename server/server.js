@@ -1,6 +1,8 @@
 const express = require('express')
 const sqlite3 = require('sqlite3')
+const yup = require('yup')
 const app = express()
+const constants = require('../constants')
 let sql
 
 // TODO: yup
@@ -23,6 +25,19 @@ app.use(express.json())
 
 const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
 
+// schema
+
+const movSchema = yup.object({
+    title: yup.string().required(),
+    year: yup.number().required().positive().integer(),
+    genre: yup.number().required().positive().integer(),
+    poster: yup.string().url().required().default("https://via.placeholder.com/400")
+})
+
+const genSchema = yup.object({
+    name: yup.string().required().max(constants.GENRE_NAME_MAX_LENGTH)
+})
+
 // movies endpoints
 
 const mvsRtr = express.Router()
@@ -43,22 +58,21 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        sql = `SELECT * FROM movies WHERE title LIKE '%${req.query.term}%'`
-        if (req.query.genre !== undefined) sql += ` AND genre = ${req.query.genre}`
+        sql = `SELECT * FROM movies WHERE title LIKE ? AND genre LIKE ?`
 
-        db.all(sql,(err,movies)=>{
+        db.all(sql,[`%${req.query.term || ''}%`, req.query.genre || '%%'],(err,movies)=>{
             logError(err)
             if (movies.length === 0) res.end("No movies found in database")
 
             data = []
 
-            movies.forEach((movie,ind)=>{
+            movies.forEach((movie)=>{
                 db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
                     let genreObj
                     if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
                     else genreObj = genres[0]
                     data.push({...movie,genre:genreObj})
-                    if (ind===movies.length-1) {
+                    if (data.length===movies.length) {
                         res.send({data: data})
                     }
                 })
@@ -68,11 +82,14 @@ mvsRtr.route('/')
     .post((req,res)=>{
         sql = `INSERT INTO movies(title, year, genre, poster) VALUES (?,?,?,?)`
 
-        db.run(sql,[req.body.title,req.body.year,req.body.genre,req.body.poster],(err)=>logError(err))
-
-        res.end()
-
-        // TODO: validation
+        movSchema.validate(req.body, {abortEarly: false}).then((movie)=>{
+            db.run(sql,[movie.title,movie.year,movie.genre,movie.poster],(err)=>{
+                logError(err)
+                res.end()
+            })}
+        ).catch((err)=>{
+            res.status(404).send([err.name, err.errors])
+        })
     })
 
 // GET /movies/:id - get a movie based on id
@@ -86,15 +103,20 @@ mvsRtr.route('/:id')
             let genreObj
             if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
             else genreObj = genres[0]
-            res.json({data: {...movie,genre:genreObj}})
+            res.json({data: [{...movie,genre:genreObj}]})
         })
     })
     .put((req,res)=>{
-        sql = `UPDATE movies SET title = ?, year = ?, genre = ?, poster = ? WHERE id = ?`
-        db.run(sql,[req.body.title,req.body.year,req.body.genre,req.body.poster,req.params.id],(err)=>logError(err))
-        res.end()
+        sql = `UPDATE movies SET title = ?, year = ?, genre = ?, poster = ? WHERE id = ${req.params.id}`
 
-        // TODO: validation
+        movSchema.validate(req.body, {abortEarly: false}).then((movie)=>{
+            db.run(sql,[movie.title,movie.year,movie.genre,movie.poster],(err)=>{
+                logError(err)
+                res.end()
+            })}
+        ).catch((err)=>{
+            res.status(404).send([err.name, err.errors])
+        })
     })
     .delete((req,res)=>{
         sql = `DELETE FROM movies WHERE id = ${req.params.id}`
@@ -127,18 +149,32 @@ gnrsRtr.route('/')
         })
     })
     .post((req,res)=>{
-        sql = `INSERT INTO genres(name) VALUES ('${req.body.name}')`
-        dbrun()
-        res.end()
+        sql = `INSERT INTO genres(name) VALUES (?)`
+    
+        genSchema.validate(req.body, {abortEarly: false}).then((genre)=>{
+            db.run(sql,[genre.name],(err)=>{
+                logError(err)
+                res.end()
+            })
+        }).catch((err)=>{
+            res.status(404).send([err.name,err.errors])
+        })
     })
 
 gnrsRtr.route('/:id')
     .get((req,res)=>{
-        res.send({data: req.genre})
+        res.send({data: [req.genre]})
     })
     .put((req,res)=>{
-        sql = `UPDATE genres SET name = '${req.body.name}' WHERE id = ${req.params.id}`
-        dbrun()
+        sql = `UPDATE genres SET name = ? WHERE id = ${req.params.id}`
+        genSchema.validate(req.body, {abortEarly: false}).then((genre)=>{
+            db.run(sql,genre.name,(err)=>{
+                logError(err)
+                res.end()
+            })
+        }).catch((err)=>{
+            res.status(404).send([err.name,err.errors])
+        })
         res.end()
     })
     .delete((req,res)=>{
