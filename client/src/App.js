@@ -15,7 +15,7 @@ function App() {
         <Link to="/"><h1>MovieLand</h1></Link>
 
         <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        {/*Missing Search Button*/}
+        <button onClick={()=>console.log(searchTerm)}>Search</button>
 
         {/*Temporary stuff below*/}
 

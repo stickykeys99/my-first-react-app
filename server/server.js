@@ -20,6 +20,10 @@ const PORT_NO = 8080
 app.listen(PORT_NO, ()=>console.log(`Server opened at port ${PORT_NO}`))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+app.use((req,res,next)=>{
+    res.header("Access-Control-Allow-Origin","*")
+    next()
+})
 
 // movie has year, poster (image link), title, then genre
 
@@ -62,7 +66,7 @@ mvsRtr.route('/')
 
         db.all(sql,[`%${req.query.term || ''}%`, req.query.genre || '%%'],(err,movies)=>{
             logError(err)
-            if (movies.length === 0) res.end("No movies found in database")
+            if (movies.length === 0) res.end({data: [], message: "No movies found in database"})
 
             data = []
 
@@ -144,7 +148,7 @@ gnrsRtr.route('/')
         sql = `SELECT * FROM genres`
         db.all(sql,(err,genres)=>{
             logError(err)
-            if (genres.length === 0) res.end("No genres found")
+            if (genres.length === 0) res.end({data: [], message: "No genres found"})
             res.send({data: genres})
         })
     })

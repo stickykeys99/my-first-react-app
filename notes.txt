@@ -3,3 +3,7 @@ Limitations of current features:
 A movie only has one genre.
 A movie does not have tags. It is only searchable through the title. The search likewise is also a simple SQLite query.
 The year is required.
+No lazy loading in the movie cards (home) page, so the app does not scale for long lists of movies.
+
+stuff:
+Access-Control-Allow-Origin is set to wildcard, instead of the ideal solution of basing it on the request's Origin header. (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMissingAllowOrigin)
