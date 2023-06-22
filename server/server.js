@@ -5,12 +5,8 @@ const app = express()
 const constants = require('./constants')
 let sql
 
-function logError(err) {
-    if(err) return console.error(err.message)
-}
-
-function dbrun() {
-    db.run(sql,(err)=>logError(err))
+function ifErrorLog(err, res) {
+    if(err) console.error(err.message)
 }
 
 const PORT_NO = 8080
@@ -25,7 +21,7 @@ app.use((req,res,next)=>{
 
 // movie has year, poster (image link), title, then genre
 
-const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
+const db = new sqlite3.Database("./movieland.db",(err)=>ifErrorLog(err))
 
 // schema
 
@@ -40,8 +36,8 @@ app.use('/movies',mvsRtr)
 mvsRtr.param('id',(req,res,next,id)=>{
     sql = `SELECT * FROM movies WHERE id=${id} LIMIT 1`
     db.all(sql,(err,movies)=>{
-        logError(err)
-        if (movies.length === 0) res.status(404).send({data: [], message: "No such movie in database"})
+        ifErrorLog(err)
+        if (movies === undefined || movies.length === 0) return res.status(404).send({data: [], message: "No such movie in database"})
         req.movie = movies[0]
         next()
     })
@@ -55,15 +51,20 @@ mvsRtr.route('/')
         sql = `SELECT * FROM movies WHERE title LIKE ? AND genre LIKE ?`
 
         db.all(sql,[`%${req.query.term || ''}%`, req.query.genre || '%%'],(err,movies)=>{
-            logError(err)
-            if (movies.length === 0) res.send({data: [], message: "No movies found."})
+            ifErrorLog(err)
+            if (movies === undefined) {
+                if (err) return res.status(404).send(err)
+                return res.status(404).send("Error for unknown reasons")
+            }
+            if (movies.length === 0) return res.send({data: [], message: "No movies found."})
 
             data = []
 
             movies.forEach((movie)=>{
                 db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
+                    ifErrorLog(err)
                     let genreObj
-                    if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
+                    if (genres === undefined || genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
                     else genreObj = genres[0]
                     data.push({...movie,genre:genreObj})
                     if (data.length===movies.length) {
@@ -78,7 +79,8 @@ mvsRtr.route('/')
 
         movSchema.validate(req.body, {abortEarly: false}).then((movie)=>{
             db.run(sql,[movie.title,movie.year,movie.genre,movie.poster],(err)=>{
-                logError(err)
+                ifErrorLog(err)
+                if (err) return res.status(404).send(err)
                 res.end()
             })}
         ).catch((err)=>{
@@ -93,12 +95,13 @@ mvsRtr.route('/')
 mvsRtr.route('/:id')
     .get((req,res)=>{
         const movie = req.movie
-        if (movie === undefined) return
+        if (movie === undefined) return res.status(404).send("No such movie in database")
         db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
+            ifErrorLog(err)
             let genreObj
-            if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
+            if (genres === undefined || genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
             else genreObj = genres[0]
-            res.json({data: [{...movie,genre:genreObj}]})
+            res.send({data: [{...movie,genre:genreObj}]})
         })
     })
     .put((req,res)=>{
@@ -106,7 +109,8 @@ mvsRtr.route('/:id')
 
         movSchema.validate(req.body, {abortEarly: false}).then((movie)=>{
             db.run(sql,[movie.title,movie.year,movie.genre,movie.poster],(err)=>{
-                logError(err)
+                ifErrorLog(err)
+                if (err) return res.status(404).send(err)
                 res.end()
             })}
         ).catch((err)=>{
@@ -115,8 +119,11 @@ mvsRtr.route('/:id')
     })
     .delete((req,res)=>{
         sql = `DELETE FROM movies WHERE id = ${req.params.id}`
-        dbrun()
-        res.end()
+        db.run(sql,(err)=>{
+            ifErrorLog(err)
+            if (err) return res.status(404).send(err)
+            res.end()
+        })
     })
 
 // create the same endpoint for /genres
@@ -127,8 +134,8 @@ app.use('/genres',gnrsRtr)
 gnrsRtr.param('id',(req,res,next,id)=>{
     sql = `SELECT * FROM genres WHERE id=${id} LIMIT 1`
     db.all(sql,(err,genres)=>{
-        logError(err)
-        if (genres.length === 0) res.status(404).send({data: [], message: "No such genre"})
+        ifErrorLog(err)
+        if (genres === undefined || genres.length === 0) return res.status(404).send({data: [], message: "No such genre"})
         req.genre = genres[0]
         next()
     })
@@ -138,8 +145,12 @@ gnrsRtr.route('/')
     .get((req,res)=>{
         sql = `SELECT * FROM genres`
         db.all(sql,(err,genres)=>{
-            logError(err)
-            if (genres.length === 0) res.send({data: [], message: "No genres found."})
+            ifErrorLog(err)
+            if (genres === undefined) {
+                if (err) return res.status(404).send(err)
+                return res.status(404).send("Error for unknown reasons")
+            }
+            if (genres.length === 0) return res.send({data: [], message: "No genres found."})
             res.send({data: genres})
         })
     })
@@ -148,7 +159,8 @@ gnrsRtr.route('/')
     
         genSchema.validate(req.body, {abortEarly: false}).then((genre)=>{
             db.run(sql,[genre.name],(err)=>{
-                logError(err)
+                ifErrorLog(err)
+                if (err) return res.status(404).send(err)
                 res.end()
             })
         }).catch((err)=>{
@@ -158,23 +170,26 @@ gnrsRtr.route('/')
 
 gnrsRtr.route('/:id')
     .get((req,res)=>{
-        if (req.genre === undefined) return 
+        if (req.genre === undefined) return res.status(404).send({data: [], message: "No such genre"})
         res.send({data: [req.genre]})
     })
     .put((req,res)=>{
         sql = `UPDATE genres SET name = ? WHERE id = ${req.params.id}`
         genSchema.validate(req.body, {abortEarly: false}).then((genre)=>{
             db.run(sql,genre.name,(err)=>{
-                logError(err)
+                ifErrorLog(err)
+                if (err) return res.status(404).send(err)
                 res.end()
             })
         }).catch((err)=>{
             res.status(404).send({data: [], message: "Errors found, access the errors property", errors: [err.name,err.errors]})
         })
-        res.end()
     })
     .delete((req,res)=>{
         sql = `DELETE FROM genres WHERE id = ${req.params.id}`
-        dbrun()
-        res.end()
+        db.run(sql,(err)=>{
+            ifErrorLog(err)
+            if (err) return res.status(404).send(err)
+            res.end()
+        })
     })
