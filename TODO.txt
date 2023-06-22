@@ -1,0 +1,5 @@
+1. implement delete through react-query mutation
+1. reimport schemas on frontend
+1. introduce useForm hook, create primitive forms, but validated
+1. implement edit and new pages using that
+1. introduce chakra UI

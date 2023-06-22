@@ -2,10 +2,8 @@ const express = require('express')
 const sqlite3 = require('sqlite3')
 const yup = require('yup')
 const app = express()
-const constants = require('../constants')
+const constants = require('./constants')
 let sql
-
-// TODO: yup
 
 function logError(err) {
     if(err) return console.error(err.message)
@@ -31,16 +29,8 @@ const db = new sqlite3.Database("./movieland.db",(err)=>logError(err))
 
 // schema
 
-const movSchema = yup.object({
-    title: yup.string().required(),
-    year: yup.number().required().positive().integer(),
-    genre: yup.number().required().positive().integer(),
-    poster: yup.string().url().required().default("https://via.placeholder.com/400")
-})
-
-const genSchema = yup.object({
-    name: yup.string().required().max(constants.GENRE_NAME_MAX_LENGTH)
-})
+const movSchema = constants.movSchema
+const genSchema = constants.genSchema
 
 // movies endpoints
 

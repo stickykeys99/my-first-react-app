@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { Link } from "react-router-dom"
 
 export default function MovieIndex() {
     const moviesQuery = useQuery({
@@ -14,7 +15,7 @@ export default function MovieIndex() {
     return (<>
         {moviesQuery.data.data.length > 0 ? (<div className="container">{
             moviesQuery.data.data.map((movie,index)=>{return (<div className="movie" key={index}>
-                <h3>{movie.title}</h3>
+                <Link to={`${movie.id}`}><h3>{movie.title}</h3></Link>
                 <p>Year: {movie.year}</p>
                 <p>Genre: {movie.genre.name}</p>
                 <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>

@@ -7,3 +7,6 @@ No lazy loading in the movie cards (home) page, so the app does not scale for lo
 
 stuff:
 Access-Control-Allow-Origin is set to wildcard, instead of the ideal solution of basing it on the request's Origin header. (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMissingAllowOrigin)
+
+The code will be hard to maintain. The schema is defined both in frontend and backend, and changing one will require manually changing the other. Not to mention the fact that modifying the sql DB schemas also requires manual update in the code schemas.
+-- A suggested fix: make a third folder that contains the constants, publish to private npm package, and have the frontend/backend import from it

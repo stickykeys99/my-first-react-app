@@ -1,6 +1,6 @@
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {Route, Routes} from 'react-router-dom'
-import {Link, useMatch, useResolvedPath} from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import MovieIndex from './pages/MovieIndex'
 import MovieNew from './pages/MovieNew'
 import MovieView from './pages/MovieView'
