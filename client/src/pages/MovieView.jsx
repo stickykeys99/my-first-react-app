@@ -12,15 +12,19 @@ export default function MovieView() {
     if (movieQuery.error) {
         return <h1>{JSON.stringify(movieQuery.error)}</h1>
     }
-
+    
     const movie = movieQuery.data.data[0]
 
     return (<>
-        <h3>{movie.title}</h3>
-        <p>Year: {movie.year}</p>
-        <p>Genre: {movie.genre.name}</p>
-        <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>
-        <Link to="./edit"><button>Edit Movie</button></Link>
-        <Link to="../" relative="path"><button>Delete Movie</button></Link>
+        {(movie !== undefined) ? (<>
+            <h3>{movie.title}</h3>
+            <p>Year: {movie.year}</p>
+            <p>Genre: {movie.genre.name}</p>
+            <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>
+            <Link to="./edit"><button>Edit Movie</button></Link>
+            <Link to="../" relative="path"><button>Delete Movie</button></Link>
+        </>) : (
+            <p>{movieQuery.data.message}</p>
+        )}
     </>)
 }

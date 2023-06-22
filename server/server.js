@@ -41,7 +41,7 @@ mvsRtr.param('id',(req,res,next,id)=>{
     sql = `SELECT * FROM movies WHERE id=${id} LIMIT 1`
     db.all(sql,(err,movies)=>{
         logError(err)
-        if (movies.length === 0) res.status(404).end("No such movie in database")
+        if (movies.length === 0) res.status(404).send({data: [], message: "No such movie in database"})
         req.movie = movies[0]
         next()
     })
@@ -56,7 +56,7 @@ mvsRtr.route('/')
 
         db.all(sql,[`%${req.query.term || ''}%`, req.query.genre || '%%'],(err,movies)=>{
             logError(err)
-            if (movies.length === 0) res.end({data: [], message: "No movies found in database"})
+            if (movies.length === 0) res.send({data: [], message: "No movies found."})
 
             data = []
 
@@ -82,7 +82,7 @@ mvsRtr.route('/')
                 res.end()
             })}
         ).catch((err)=>{
-            res.status(404).send([err.name, err.errors])
+            res.status(404).send({data: [], message: "Errors found, access the errors property", errors: [err.name,err.errors]})
         })
     })
 
@@ -93,6 +93,7 @@ mvsRtr.route('/')
 mvsRtr.route('/:id')
     .get((req,res)=>{
         const movie = req.movie
+        if (movie === undefined) return
         db.all(`SELECT * FROM genres WHERE id='${movie.genre}' LIMIT 1`, (err,genres)=>{
             let genreObj
             if (genres.length === 0) genreObj = {id: 1, name: 'Unknown'}
@@ -109,7 +110,7 @@ mvsRtr.route('/:id')
                 res.end()
             })}
         ).catch((err)=>{
-            res.status(404).send([err.name, err.errors])
+            res.status(404).send({data: [], errors: [err.name, err.errors]})
         })
     })
     .delete((req,res)=>{
@@ -127,7 +128,7 @@ gnrsRtr.param('id',(req,res,next,id)=>{
     sql = `SELECT * FROM genres WHERE id=${id} LIMIT 1`
     db.all(sql,(err,genres)=>{
         logError(err)
-        if (genres.length === 0) res.status(404).end("No such genre")
+        if (genres.length === 0) res.status(404).send({data: [], message: "No such genre"})
         req.genre = genres[0]
         next()
     })
@@ -138,7 +139,7 @@ gnrsRtr.route('/')
         sql = `SELECT * FROM genres`
         db.all(sql,(err,genres)=>{
             logError(err)
-            if (genres.length === 0) res.end({data: [], message: "No genres found"})
+            if (genres.length === 0) res.send({data: [], message: "No genres found."})
             res.send({data: genres})
         })
     })
@@ -151,12 +152,13 @@ gnrsRtr.route('/')
                 res.end()
             })
         }).catch((err)=>{
-            res.status(404).send([err.name,err.errors])
+            res.status(404).send({data: [], message: "Errors found, access the errors property", errors: [err.name,err.errors]})
         })
     })
 
 gnrsRtr.route('/:id')
     .get((req,res)=>{
+        if (req.genre === undefined) return 
         res.send({data: [req.genre]})
     })
     .put((req,res)=>{
@@ -167,7 +169,7 @@ gnrsRtr.route('/:id')
                 res.end()
             })
         }).catch((err)=>{
-            res.status(404).send([err.name,err.errors])
+            res.status(404).send({data: [], message: "Errors found, access the errors property", errors: [err.name,err.errors]})
         })
         res.end()
     })

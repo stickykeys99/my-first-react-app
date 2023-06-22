@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams} from "react-router-dom"
 
 export default function MovieIndex() {
+
+    let [params, _] = useSearchParams()
+
     const moviesQuery = useQuery({
-        queryKey: ["movies"],
-        queryFn: () => fetch('http://localhost:8080/movies', {method:'GET'}).then((res)=>res.json()).catch((err)=>console.error(err))
+        queryKey: ["movies", Object.fromEntries(params.entries())],
+        queryFn: () => fetch(`http://localhost:8080/movies/?${params.toString()}`, {method:'GET'}).then((res)=>res.json()).catch((err)=>console.error(err))
     })
     
     if (moviesQuery.isLoading) return <h1>Loading...</h1>
@@ -22,7 +25,7 @@ export default function MovieIndex() {
                 <hr/>
             </div>)})
         }</div>) : (
-            <p>No movies found in database.</p>
+            <p>{moviesQuery.data.message}</p>
         )}
     </>)
 }
