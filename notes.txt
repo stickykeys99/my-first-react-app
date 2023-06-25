@@ -5,11 +5,13 @@ A movie does not have tags. It is only searchable through the title. The search 
 The year is required.
 No lazy loading in the movie cards (home) page, so the app does not scale for long lists of movies.
 
-Also:
-No 404 page for endpoints that are not defined
+There is also no 404 page for endpoints that are not defined
 
-stuff:
-Access-Control-Allow-Origin is set to wildcard, instead of the ideal solution of basing it on the request's Origin header. (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMissingAllowOrigin)
+Security: 
+Access-Control-Allow-Origin is set to wildcard, instead of the ideal solution of basing it on the request's Origin header. (https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSMissingAllowOrigin). There is also no auth key system.
 
+The website is not tested to deal against SQL injections.
+
+Code: 
 The code will be hard to maintain. The schema is defined both in frontend and backend, and changing one will require manually changing the other. Not to mention the fact that modifying the sql DB schemas also requires manual update in the code schemas.
--- A suggested fix: make a third folder that contains the constants, publish to private npm package, and have the frontend/backend import from it
+-- A suggested fix: make a third folder that contains the constants and schemas, publish to private npm package, and have the frontend/backend import from it
