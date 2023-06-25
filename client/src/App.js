@@ -7,10 +7,9 @@ import MovieView from './pages/MovieView'
 import MovieUpdate from './pages/MovieUpdate'
 import { useQuery } from '@tanstack/react-query'
 import Select from 'react-select'
+import * as constants from './constants'
 
-const defaultGenres = [
-    {label: 'Any', value: ''},
-]
+const defaultGenres = constants.defaultGenres
 
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -65,7 +64,7 @@ function App() {
         <div className="container">
             <Routes>
                 <Route path="/" element={<MovieIndex />} />
-                <Route path="/new" element={<MovieNew />} />
+                <Route path="/new" element={<MovieNew genres={genres}/>} />
                 <Route path="/:id" element={<MovieView />} />
                 <Route path="/:id/edit" element={<MovieUpdate />} />
             </Routes>

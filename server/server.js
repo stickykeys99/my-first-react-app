@@ -1,6 +1,5 @@
 const express = require('express')
 const sqlite3 = require('sqlite3')
-const yup = require('yup')
 const app = express()
 const constants = require('./constants')
 let sql

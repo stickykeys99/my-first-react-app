@@ -3,6 +3,9 @@ import {useQuery} from '@tanstack/react-query'
 export default function MovieView() {
     let params = useParams()
 
+    // note that some data from the main page may be passed, either as a prop or cache (likely better solution) from react query.
+    // it is not done here. the same data is again re-queried
+
     const movieQuery = useQuery({
         queryKey: ["movies",params.id],
         queryFn: () => fetch(`http://localhost:8080/movies/${params.id}`, {method:'GET'}).then((res)=>res.json()).catch((err)=>console.error(err))
