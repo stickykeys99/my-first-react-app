@@ -2,13 +2,13 @@ import {useForm, Controller} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import * as constants from '../constants'
 import Select from 'react-select'
+import {useMutation, useQueryClient} from "@tanstack/react-query"
+import { useNavigate } from 'react-router-dom'
 
 const movSchema = constants.movSchema
 const posterDefault = constants.posterDefault
 
 const MovieNew = ({genres}) => {
-
-    // genres was passed as a prop. a better solution might be through cached queries from react query
 
     if (genres === undefined) { /* if `genres` was never passed, query it, then pass data to newGenres */}
     // else
@@ -22,8 +22,35 @@ const _MovieNew = ({genres}) => {
         resolver: yupResolver(movSchema),
     })
 
+    const queryClient = useQueryClient()
+    const navigate = useNavigate()
+    const newMovieMutation = useMutation({
+        mutationFn: (variables) => {
+            fetch(`http://localhost:8080/movies`, {method:'POST', headers: {
+                'Content-Type': 'application/json'
+            }, body: JSON.stringify({
+                title: variables.title,
+                year: variables.year,
+                genre: variables.genre,
+                poster: variables.poster,
+            })}).then((res)=>res.json()).catch((err)=>console.error(err))
+        },
+        onSettled: (data,error,variables,context) => {
+            queryClient.invalidateQueries(["movies"],{exact:true})
+            alert("Movie created.")
+            navigate({
+                pathname: '/',
+            })
+        }
+    })
+
     const onSubmit = (data) => {
-        console.log(data)
+        newMovieMutation.mutate({
+            title: data.title,
+            year: data.year,
+            genre: data.genre,
+            poster: data.poster,
+        })
     }
 
     return (<>
@@ -75,7 +102,10 @@ const _MovieNew = ({genres}) => {
                 }
             />
             <p>{errors.poster?.message}</p>
-            <input type="submit" />
+            <input type="submit" disabled={newMovieMutation.isLoading}/>
+            
+            {/* {newMovieMutation.isLoading ? "Loading..." : null}
+            {newMovieMutation.isError && JSON.stringify(newMovieMutation.error)} */}
         </form>
     </>)
 }

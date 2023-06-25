@@ -1,9 +1,29 @@
-import {useParams, Link} from 'react-router-dom'
-import {useQuery} from '@tanstack/react-query'
+import {useParams, Link, useNavigate} from 'react-router-dom'
+import {useQuery, useQueryClient, useMutation} from '@tanstack/react-query'
 export default function MovieView() {
     let params = useParams()
 
-    // note that some data from the main page may be passed, either as a prop or cache (likely better solution) from react query.
+    const queryClient = useQueryClient()
+    const navigate = useNavigate()
+
+    const deleteMovieMutation = useMutation({
+        mutationFn: () => {
+            fetch(`http://localhost:8080/movies/${params.id}`, {method: 'DELETE'})
+        },
+        onSettled: (data,error,variables,context) => {
+            queryClient.invalidateQueries(["movies"],{exact:true})
+            alert("Movie successfully deleted.")
+            navigate({
+                pathname: '/',
+            })
+        }
+    })
+
+    const deleteMovie = () => {
+        deleteMovieMutation.mutate()
+    }
+
+    // note that some data from the main page may be passed, either as a prop or cache from react query.
     // it is not done here. the same data is again re-queried
 
     const movieQuery = useQuery({
@@ -25,7 +45,8 @@ export default function MovieView() {
             <p>Genre: {movie.genre.name}</p>
             <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>
             <Link to="./edit"><button>Edit Movie</button></Link>
-            <Link to="../" relative="path"><button>Delete Movie</button></Link>
+            <button onClick={deleteMovie} disabled={deleteMovieMutation.isLoading}>Delete Movie</button>
+            {/* <Link to="../" relative="path"> </Link>*/}
         </>) : (
             <p>{movieQuery.data.message}</p>
         )}
