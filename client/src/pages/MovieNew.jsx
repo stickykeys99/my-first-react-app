@@ -4,20 +4,12 @@ import * as constants from '../constants'
 import Select from 'react-select'
 import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { useNavigate } from 'react-router-dom'
+import GenreDropdown from '../components/GenreDropdown'
 
 const movSchema = constants.movSchema
 const posterDefault = constants.posterDefault
 
-const MovieNew = ({genres}) => {
-
-    if (genres === undefined) { /* if `genres` was never passed, query it, then pass data to newGenres */}
-    // else
-    const newGenres = genres.filter(genre=>Number.isInteger(genre.value))
-
-    return <_MovieNew genres={newGenres} />
-}
-
-const _MovieNew = ({genres}) => {
+const MovieNew = () => {
     const {control, handleSubmit, watch, formState: {errors}} = useForm({
         resolver: yupResolver(movSchema),
     })
@@ -79,15 +71,23 @@ const _MovieNew = ({genres}) => {
                 render={({
                     field: { onChange, value }
                   }) => 
-                    <Select
-                        options={genres}
-                        filterOption={genre => Number.isInteger(genre.value)}
-                        onChange={val=>onChange(val.value)}
-                        defaultValue={()=>{
-                            if (genres.length > 0) {
-                            onChange(genres[0].value)
-                            return genres[0]
-                        }}}
+                    <GenreDropdown
+                    // options={genres}
+                    // filterOption={genre => Number.isInteger(genre.value)}
+                    // onChange={val=>onChange(val.value)}
+                    // // defaultValue={()=>{
+                    // //     if (genres.length > 0) {
+                    // //     onChange(genres[0].value)
+                    // //     return genres[0]
+                    // // }}}
+                    // ctrlrOnChange={onChange}
+                    // isControlled={true}
+                    props={({
+                        filterOption: genre => Number.isInteger(genre.value),
+                        onChange: val=>onChange(val.value),
+                        ctrlrOnChange: onChange,
+                        isControlled: true
+                    })}
                     />
                 }
             />
