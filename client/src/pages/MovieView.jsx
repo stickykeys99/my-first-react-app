@@ -1,5 +1,7 @@
 import {useParams, Link, useNavigate} from 'react-router-dom'
 import {useQuery, useQueryClient, useMutation} from '@tanstack/react-query'
+import MovieCard from '../components/MovieCard'
+import { Box, Button, Center, Flex, SimpleGrid } from '@chakra-ui/react'
 export default function MovieView() {
     let params = useParams()
 
@@ -37,17 +39,14 @@ export default function MovieView() {
     }
     
     const movie = movieQuery.data.data[0]
-
+    console.log(movie)
     return (<>
         {(movie !== undefined) ? (<>
-            <h3>{movie.title}</h3>
-            <p>Year: {movie.year}</p>
-            <p>Genre: {movie.genre.name}</p>
-            <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>
-            <Link to="./edit"><button>Edit Movie</button></Link>
-            <button onClick={deleteMovie} disabled={deleteMovieMutation.isLoading}>Delete Movie</button>
-            {/* <Link to="../" relative="path"> </Link>*/}
-        </>) : (
+            <SimpleGrid columns={1} spacing='1rem' >
+                <Center><MovieCard movie={movie} /></Center>
+                <Center><Link to="./edit"><Button>Edit Movie</Button></Link></Center>
+                <Center><Button onClick={deleteMovie} disabled={deleteMovieMutation.isLoading}>Delete Movie</Button></Center>
+            </SimpleGrid></>) : (
             <p>{movieQuery.data.message}</p>
         )}
     </>)

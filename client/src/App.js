@@ -6,7 +6,8 @@ import MovieNew from './pages/MovieNew'
 import MovieView from './pages/MovieView'
 import MovieUpdate from './pages/MovieUpdate'
 import GenreDropdown from './components/GenreDropdown'
-import { Center, Input, Text } from '@chakra-ui/react'
+import { Box, Button, Center, Flex, IconButton, Input, InputGroup, InputRightElement, SimpleGrid, Text } from '@chakra-ui/react'
+import {SearchIcon} from '@chakra-ui/icons'
 
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -30,33 +31,36 @@ function App() {
             </Link>
         </Center>
 
-        {/* <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onSubmit={search} />
-        <button onClick={search}>Search</button> */}
+        <SimpleGrid columns={1} spacing='1rem' padding='1rem'>
+            <Center>
+                <InputGroup width='50%'>
+                    <Input
+                        placeholder='Search for movies'
+                        value={searchTerm}
+                        onChange={(e)=>setSearchTerm(e.target.value)}
+                        onSubmit={search}
+                        size='lg'
+                        variant='filled'
+                    />
+                    <InputRightElement>
+                        <IconButton icon={<SearchIcon />} onClick={search}/>
+                    </InputRightElement>
+                </InputGroup>
+                <GenreDropdown props={({
+                    value: selectedGenre,
+                    onChange: setSelectedGenre,
+                })}/>
 
-        <Center>
-            <Input
-                placeholder='Search for movies'
-                value={searchTerm}
-                onChange={(e)=>setSearchTerm(e.target.value)}
-                onSubmit={search}
-                size='lg'
-                width='50%'
-                variant='filled'
-            />
-            <GenreDropdown props={({
-                value: selectedGenre,
-                onChange: setSelectedGenre,
-                styles:{
-                    w:'50px'
-                }
-            })}/>
-        </Center>
+            </Center>
 
-        {/*Temporary stuff below*/}
+            <Center>
+                <Button>
+                    <Link to="/new">New Movie</Link>
+                </Button>
+            </Center>
+        </SimpleGrid>
 
-        <Link to="/new">New Movie</Link>
-
-        {/*end of temp*/}
+        <Box height='3rem'></Box>
 
         {/*Dynamic via routes*/}
         <div className="container">

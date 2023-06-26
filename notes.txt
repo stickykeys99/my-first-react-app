@@ -5,6 +5,16 @@ A movie does not have tags. It is only searchable through the title. The search 
 The year is required.
 No lazy loading in the movie cards (home) page, so the app does not scale for long lists of movies.
 
+Frontend:
+
+The UI/UX is pretty bad. The size of the cards and images within are not consistent. The 'clickable' portion of the card that takes you to the corresponding movie page is bigger than the card itself.
+
+There is also no theming.
+
+Lastly, the layout does not answer the rare case (in real life) where there is only 1 or 2 movies, hence the cards should still center accordingly.
+
+Backend:
+
 There is also no 404 page for endpoints that are not defined
 
 Query caching is not introduced, hence the site makes redundant queries. 

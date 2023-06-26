@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useSearchParams} from "react-router-dom"
+import MovieCard from "../components/MovieCard"
+import { Box, Center, SimpleGrid } from "@chakra-ui/react"
 
 export default function MovieIndex() {
 
@@ -16,15 +18,15 @@ export default function MovieIndex() {
     }
 
     return (<>
-        {moviesQuery.data.data.length > 0 ? (<div className="container">{
-            moviesQuery.data.data.map((movie,index)=>{return (<div className="movie" key={index}>
-                <Link to={`${movie.id}`}><h3>{movie.title}</h3></Link>
-                <p>Year: {movie.year}</p>
-                <p>Genre: {movie.genre.name}</p>
-                <p>Poster:<br/> <img src={movie.poster} alt="Movie poster"/></p>
-                <hr/>
-            </div>)})
-        }</div>) : (
+        {moviesQuery.data.data.length > 0 ? (
+            <Center><SimpleGrid columns={[1,2,3]} spacing='2rem' w='70%'>
+                {moviesQuery.data.data.map((movie)=>{
+                    return <Link to={`${movie.id}`}>
+                        <MovieCard movie={movie} />
+                    </Link>
+                })}
+            </SimpleGrid></Center>
+        ) : (
             <p>{moviesQuery.data.message}</p>
         )}
     </>)

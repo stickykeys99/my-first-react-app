@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
-import Select from "react-select"
+import {Select} from "chakra-react-select"
 import constants from "../constants"
 
 const defaultGenres = constants.defaultGenres
@@ -9,6 +9,7 @@ const GenreDropdown = ({props}) => {
 
     const [genres, setGenres] = useState(defaultGenres)
     const [value, setValue] = useState()
+    const [width, setWidth] = useState(10)
 
     const genresQuery = useQuery({
         queryKey: ["genres"],
@@ -37,15 +38,19 @@ const GenreDropdown = ({props}) => {
 
             if (myGenres !== undefined && myGenres.length > 0) setValue(myGenres[0])
 
+            if (myGenres !== undefined) {
+                setWidth(Math.max(myGenres.map((genre)=>genre.label.length))*8)
+            }
         }
     }, [genresQuery.status])
 
     return <Select
         {...props}
         options={props.options ?? genres}
-        value={value}
+        value={props.value ?? value}
         onChange={(newValue)=>{
-            setValue(newValue)
+            if (props.onChange !== undefined) props.onChange(newValue)
+            else setValue(newValue)
             if (props.ctrlrOnChange !== undefined) props.ctrlrOnChange(newValue.value)
         }}
     />

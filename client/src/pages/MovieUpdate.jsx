@@ -10,10 +10,6 @@ const movSchema = constants.movSchema
 const MovieUpdate = () => {
     let params = useParams()
 
-    const {control, handleSubmit, watch, formState: {errors}} = useForm({
-        resolver: yupResolver(movSchema)
-    })
-
     const queryClient = useQueryClient()
     const navigate = useNavigate()
 
@@ -54,6 +50,24 @@ const MovieUpdate = () => {
         queryFn: () => fetch(`http://localhost:8080/movies/${params.id}`, {method:'GET'}).then((res)=>res.json()).catch((err)=>console.error(err))
     })
 
+    const {control, handleSubmit, watch, formState: {errors}} = useForm({
+        resolver: yupResolver(movSchema),
+        defaultValues: async () => new Promise((resolve,reject) => {
+            if(movieQuery.status === 'success') {
+                const movie = movieQuery.data.data[0]
+                resolve({
+                    title: movie.title,
+                    year: movie.year,
+                    genre: movie.genre.id,
+                    poster: movie.poster
+                })
+            }
+            else {
+                reject()
+            }
+        })
+    })
+
     if (movieQuery.isLoading) return <h1>Loading...</h1>
     if (movieQuery.error) {
         return <h1>{JSON.stringify(movieQuery.error)}</h1>
@@ -69,7 +83,7 @@ const MovieUpdate = () => {
                     name="title"
                     control={control}
                     render={({field}) =>
-                        <input {...field} defaultValue={movie.title}/>
+                        <input {...field} />
                     }
                 />
                 {/* note that the defaultValues are passed to the field but not to the controller... will be fixed when you make your own input fields like select */}
@@ -78,7 +92,7 @@ const MovieUpdate = () => {
                     name="year"
                     control={control}
                     render={({field}) => 
-                        <input {...field} type="number" defaultValue={movie.year}/>
+                        <input {...field} type="number" />
                     }
                 />
                 <p>{errors.year?.message}</p>
@@ -107,7 +121,7 @@ const MovieUpdate = () => {
                     name="poster"
                     control={control}
                     render={({field}) => 
-                        <input {...field} defaultValue={movie.poster}/>
+                        <input {...field} />
                     }
                 />
                 <p>{errors.poster?.message}</p>
