@@ -69,7 +69,7 @@ const MovieNew = () => {
                 name="genre"
                 control={control}
                 render={({
-                    field: { onChange, value }
+                    field: { onChange }
                   }) => 
                     <GenreDropdown
                     // options={genres}
@@ -84,7 +84,7 @@ const MovieNew = () => {
                     // isControlled={true}
                     props={({
                         filterOption: genre => Number.isInteger(genre.value),
-                        onChange: val=>onChange(val.value),
+                        // onChange: val=>onChange(val.value),
                         ctrlrOnChange: onChange,
                         isControlled: true
                     })}
