@@ -1,7 +1,6 @@
 import {useForm, Controller} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import * as constants from '../constants'
-import Select from 'react-select'
 import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { useNavigate } from 'react-router-dom'
 import GenreDropdown from '../components/GenreDropdown'
@@ -27,8 +26,8 @@ const MovieNew = () => {
                 poster: variables.poster,
             })}).then((res)=>res.json()).catch((err)=>console.error(err))
         },
-        onSettled: (data,error,variables,context) => {
-            queryClient.invalidateQueries(["movies"],{exact:true})
+        onSettled: async (data,error,variables,context) => {
+            await queryClient.invalidateQueries(["movies"],{exact:true})
             alert("Movie created.")
             navigate({
                 pathname: '/',
@@ -72,19 +71,8 @@ const MovieNew = () => {
                     field: { onChange }
                   }) => 
                     <GenreDropdown
-                    // options={genres}
-                    // filterOption={genre => Number.isInteger(genre.value)}
-                    // onChange={val=>onChange(val.value)}
-                    // // defaultValue={()=>{
-                    // //     if (genres.length > 0) {
-                    // //     onChange(genres[0].value)
-                    // //     return genres[0]
-                    // // }}}
-                    // ctrlrOnChange={onChange}
-                    // isControlled={true}
                     props={({
                         filterOption: genre => Number.isInteger(genre.value),
-                        // onChange: val=>onChange(val.value),
                         ctrlrOnChange: onChange,
                         isControlled: true
                     })}

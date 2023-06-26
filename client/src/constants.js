@@ -14,7 +14,7 @@ module.exports = Object.freeze({
         title: yup.string().required(),
         year: yup.number().required().positive().integer(),
         genre: yup.number().required().positive().integer(),
-        poster: yup.string().url().optional().default(posterDefault)
+        poster: yup.string().url().required().default(posterDefault)
     }),
     genSchema: yup.object({
         name: yup.string().required().max(GENRE_NAME_MAX_LENGTH)

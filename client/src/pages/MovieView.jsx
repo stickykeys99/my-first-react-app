@@ -10,8 +10,8 @@ export default function MovieView() {
         mutationFn: () => {
             fetch(`http://localhost:8080/movies/${params.id}`, {method: 'DELETE'})
         },
-        onSettled: (data,error,variables,context) => {
-            queryClient.invalidateQueries(["movies"],{exact:true})
+        onSettled: async (data,error,variables,context) => {
+            await queryClient.invalidateQueries(["movies"],{exact:true})
             alert("Movie successfully deleted.")
             navigate({
                 pathname: '/',

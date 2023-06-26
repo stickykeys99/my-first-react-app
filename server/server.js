@@ -49,7 +49,7 @@ mvsRtr.param('id',(req,res,next,id)=>{
 
 mvsRtr.route('/')
     .get((req,res)=>{
-        sql = `SELECT * FROM movies WHERE title LIKE ? AND genre LIKE ?`
+        sql = `SELECT * FROM movies WHERE title LIKE ? AND genre LIKE ? ORDER BY id DESC`
 
         db.all(sql,[`%${req.query.term || ''}%`, req.query.genre || '%%'],(err,movies)=>{
             ifErrorLog(err)
@@ -144,7 +144,7 @@ gnrsRtr.param('id',(req,res,next,id)=>{
 
 gnrsRtr.route('/')
     .get((req,res)=>{
-        sql = `SELECT * FROM genres`
+        sql = `SELECT * FROM genres ORDER BY id ASC`
         db.all(sql,(err,genres)=>{
             ifErrorLog(err)
             if (genres === undefined) {

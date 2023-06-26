@@ -25,6 +25,12 @@ const GenreDropdown = ({props}) => {
 
             if (props.filterOption !== undefined) myGenres = myGenres.filter(props.filterOption)
 
+            if (props.defaultValue !== undefined && props.ctrlrOnChange !== undefined) {
+                props.ctrlrOnChange(props.defaultValue.value)
+                setValue(props.defaultValue)
+                return
+            }
+
             if (props.ctrlrOnChange !== undefined && myGenres !== undefined && myGenres.length > 0) {
                 props.ctrlrOnChange(myGenres[0].value)
             }
@@ -42,12 +48,7 @@ const GenreDropdown = ({props}) => {
             setValue(newValue)
             if (props.ctrlrOnChange !== undefined) props.ctrlrOnChange(newValue.value)
         }}
-        // MUST SORT GENRES ON THE BACKEND! BY ID!
-        // also try to sort movies, but in reverse ID
     />
-    // do not do this....
-    // since defaultValue does not reflect state changes, value and onChange needs to be overridden..
-    // second useEffect will be removed.. value will be set along with options upon changes to queryStatus
 }
 
 export default GenreDropdown
