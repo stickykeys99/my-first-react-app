@@ -6,6 +6,7 @@ import MovieNew from './pages/MovieNew'
 import MovieView from './pages/MovieView'
 import MovieUpdate from './pages/MovieUpdate'
 import GenreDropdown from './components/GenreDropdown'
+import { Center, Input, Text } from '@chakra-ui/react'
 
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -23,21 +24,37 @@ function App() {
 
     return (<>
 
-        <Link to="/"><h1>MovieLand</h1></Link>
+        <Center height='3rem' bg='orange'>
+            <Link to="/">
+                <Text fontSize='3xl' as='b'>MovieLand</Text>
+            </Link>
+        </Center>
 
-        <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onSubmit={search} />
-        <button onClick={search}>Search</button>
+        {/* <input placeholder="Search for movies" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onSubmit={search} />
+        <button onClick={search}>Search</button> */}
 
-        <GenreDropdown props={({
-            value: selectedGenre,
-            onChange: setSelectedGenre,
-        })}/>
+        <Center>
+            <Input
+                placeholder='Search for movies'
+                value={searchTerm}
+                onChange={(e)=>setSearchTerm(e.target.value)}
+                onSubmit={search}
+                size='lg'
+                width='50%'
+                variant='filled'
+            />
+            <GenreDropdown props={({
+                value: selectedGenre,
+                onChange: setSelectedGenre,
+                styles:{
+                    w:'50px'
+                }
+            })}/>
+        </Center>
 
         {/*Temporary stuff below*/}
 
         <Link to="/new">New Movie</Link>
-        <Link to="/5">Movie 5</Link>
-        <Link to="/5/edit">Edit Movie 5</Link>
 
         {/*end of temp*/}
 
