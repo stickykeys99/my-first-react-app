@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 import {useNavigate, useParams} from 'react-router-dom'
 import constants from '../constants'
 import GenreDropdown from '../components/GenreDropdown'
+import { Box, Button, Center, FormControl, FormLabel, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, SimpleGrid, Text } from '@chakra-ui/react'
 
 const movSchema = constants.movSchema
 
@@ -76,61 +77,85 @@ const MovieUpdate = () => {
     const movie = movieQuery.data.data[0]
 
     return (<>
-        <h2>Editing Movie</h2>
+        <Center><SimpleGrid column={1} spacing='1.5rem' maxW='50%' minW='30%'>
+            
+        <Center><Text fontSize='3xl'>Updating Movie</Text></Center>
+
         {(movie !== undefined) ? (<>
-            <form onSubmit={handleSubmit(onSubmit)}>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+
+            <FormControl>
+                <FormLabel>Title: </FormLabel>
                 <Controller
                     name="title"
                     control={control}
                     render={({field}) =>
-                        <input {...field} />
+                        <Input {...field} />
                     }
                 />
-                {/* note that the defaultValues are passed to the field but not to the controller... will be fixed when you make your own input fields like select */}
-                <p>{errors.title?.message}</p>
+            </FormControl>
+            <Text>{errors.title?.message}</Text>
+
+            <FormControl>
+                <FormLabel>Year: </FormLabel>
                 <Controller
                     name="year"
                     control={control}
                     render={({field}) => 
-                        <input {...field} type="number" />
+                    <NumberInput {...field} type="number">
+                            <NumberInputField />
+                            <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
                     }
-                />
-                <p>{errors.year?.message}</p>
+                    />
+            </FormControl>
+            <Text>{errors.year?.message}</Text>
 
+            <FormControl>
+                <FormLabel>Genre: </FormLabel>
                 <Controller
                 name="genre"
                 control={control}
                 render={({
                     field: { onChange }
-                  }) => 
+                }) => 
                     <GenreDropdown
                     props={({
                         filterOption: genre => Number.isInteger(genre.value),
                         ctrlrOnChange: onChange,
                         isControlled: true,
                         defaultValue: {label: movie.genre.name, value: movie.genre.id}
-                    })}
-                    />
-                    }
-                />
+                    })} />
+                } />
+            </FormControl>
+            <Text>{errors.genre?.message}</Text>
 
-                <p>{errors.genre?.message}</p>
-
-                {/* this should say "Poster link" */}
+            <FormControl>
+                <FormLabel>Poster Link: </FormLabel>
                 <Controller
                     name="poster"
                     control={control}
                     render={({field}) => 
-                        <input {...field} />
-                    }
+                    <Input {...field} />
+                }
                 />
-                <p>{errors.poster?.message}</p>
+            </FormControl>
+            <Text>{errors.poster?.message}</Text>
+            <Box h='2rem'></Box>
+            <Center><Button type="submit" disabled={updateMovieMutation.isLoading}>Submit</Button></Center>
+        </form>
 
-                <input type="submit" disabled={updateMovieMutation.isLoading}/>
-            </form>
         </>) : (
-            <p>{movieQuery.data.message}</p>
+
+        <Text>{movieQuery.data.message}</Text>
+
         )}
+
+    </SimpleGrid></Center>
     </>)
 }
 

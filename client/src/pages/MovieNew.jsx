@@ -4,6 +4,7 @@ import * as constants from '../constants'
 import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { useNavigate } from 'react-router-dom'
 import GenreDropdown from '../components/GenreDropdown'
+import {Center, SimpleGrid, Text, Box, Button, FormControl, FormLabel, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper} from '@chakra-ui/react';
 
 const movSchema = constants.movSchema
 const posterDefault = constants.posterDefault
@@ -45,56 +46,76 @@ const MovieNew = () => {
     }
 
     return (<>
-        <h2>New Movie</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <Controller
-                name="title"
-                control={control}
-                render={({field}) => 
-                    <input {...field} />
-                }
-            />
-            <p>{errors.title?.message}</p>
-            <Controller
-                name="year"
-                control={control}
-                render={({field}) => 
-                    <input {...field} type="number" />
-                }
-            />
-            <p>{errors.year?.message}</p>
+        <Center><SimpleGrid column={1} spacing='1.5rem' maxW='50%' minW='30%'>
+            
+        <Center><Text fontSize='3xl'>New Movie</Text></Center>
 
-            <Controller
+        <form onSubmit={handleSubmit(onSubmit)}>
+
+            <FormControl>
+                <FormLabel>Title: </FormLabel>
+                <Controller
+                    name="title"
+                    control={control}
+                    render={({field}) =>
+                        <Input {...field} />
+                    }
+                />
+            </FormControl>
+            <Text>{errors.title?.message}</Text>
+
+            <FormControl>
+                <FormLabel>Year: </FormLabel>
+                <Controller
+                    name="year"
+                    control={control}
+                    render={({field}) => 
+                    <NumberInput {...field} type="number">
+                            <NumberInputField />
+                            <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                            </NumberInputStepper>
+                        </NumberInput>
+                    }
+                    />
+            </FormControl>
+            <Text>{errors.year?.message}</Text>
+
+            <FormControl>
+                <FormLabel>Genre: </FormLabel>
+                <Controller
                 name="genre"
                 control={control}
                 render={({
                     field: { onChange }
-                  }) => 
+                }) => 
                     <GenreDropdown
                     props={({
                         filterOption: genre => Number.isInteger(genre.value),
                         ctrlrOnChange: onChange,
-                        isControlled: true
-                    })}
-                    />
-                }
-            />
-            <p>{errors.genre?.message}</p>
+                        isControlled: true,
+                    })} />
+                } />
+            </FormControl>
+            <Text>{errors.genre?.message}</Text>
 
-            {/* this should say "Poster link" */}
-            <Controller
-                name="poster"
-                control={control}
-                render={({field}) => 
-                    <input {...field} placeholder={posterDefault} />
+            <FormControl>
+                <FormLabel>Poster Link: </FormLabel>
+                <Controller
+                    name="poster"
+                    control={control}
+                    render={({field}) => 
+                    <Input {...field} />
                 }
-            />
-            <p>{errors.poster?.message}</p>
-            <input type="submit" disabled={newMovieMutation.isLoading}/>
-            
-            {/* {newMovieMutation.isLoading ? "Loading..." : null}
-            {newMovieMutation.isError && JSON.stringify(newMovieMutation.error)} */}
+                />
+            </FormControl>
+            <Text>{errors.poster?.message}</Text>
+            <Box h='2rem'></Box>
+            <Center><Button type="submit" disabled={newMovieMutation.isLoading}>Submit</Button></Center>
         </form>
+
+    </SimpleGrid></Center>
     </>)
 }
 

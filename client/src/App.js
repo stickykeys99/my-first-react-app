@@ -6,13 +6,14 @@ import MovieNew from './pages/MovieNew'
 import MovieView from './pages/MovieView'
 import MovieUpdate from './pages/MovieUpdate'
 import GenreDropdown from './components/GenreDropdown'
-import { Box, Button, Center, Flex, IconButton, Input, InputGroup, InputRightElement, SimpleGrid, Text } from '@chakra-ui/react'
+import { Box, Button, Center, IconButton, Input, InputGroup, InputRightElement, SimpleGrid, Text } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
+import { defaultGenres } from './constants'
 
 function App() {
     const [searchTerm, setSearchTerm] = useState('')
 
-    const [selectedGenre, setSelectedGenre] = useState()
+    const [selectedGenre, setSelectedGenre] = useState(defaultGenres[0])
 
     const navigate = useNavigate()
 
